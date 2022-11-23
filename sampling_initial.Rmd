@@ -1,0 +1,100 @@
+---
+title: "Sampling"
+author: "Prabidhik KC"
+date: "2022-11-23"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## We will be workin on sampling.
+
+```{r}
+## Loading the necessary libraries
+
+library(tidyverse)
+library(gov50data)
+```
+
+```{r}
+class_years <- read_csv("class_years.csv")
+class_years %>% 
+  count(year) %>% 
+  mutate(prop = n/nrow(class_years))
+
+```
+
+```{r}
+class_years %>% 
+  slice_sample(n = 100) %>% 
+  summarize(fir_prop = mean(year == "First-Year")) %>% 
+  pull()
+
+```
+
+```{r}
+library(infer)
+```
+
+```{r}
+samples_n20 <- class_years %>% 
+  rep_slice_sample(n = 20, reps = 100) %>% 
+  group_by(replicate) %>% 
+  summarize(fy_prop = mean(year == "First-Year"))
+
+samples_n20 %>% 
+  ggplot(aes(x = fy_prop)) +
+  geom_histogram(binwidth = 0.05) +
+  lims(x=c(0,1))
+
+samples_n50 <- class_years %>% 
+  rep_slice_sample(n = 50, reps = 100) %>% 
+  group_by(replicate) %>% 
+  summarize(fy_prop = mean(year == "First-Year"))
+
+samples_n50 %>% 
+  ggplot(aes(x = fy_prop)) +
+  geom_histogram(binwidth = 0.05) +
+  lims(x=c(0,1))
+
+samples_n100 <- class_years %>% 
+  rep_slice_sample(n = 100, reps = 100) %>% 
+  group_by(replicate) %>% 
+  summarize(fy_prop = mean(year == "First-Year"))
+
+samples_n100 %>% 
+  ggplot(aes(x = fy_prop)) +
+  geom_histogram(binwidth = 0.05) +
+  lims(x=c(0,1))
+```
+
+```{r}
+## Lets check the standard deviation as we increase the sample size
+
+samples_n20 %>% 
+  summarize(sd(fy_prop)) %>% 
+  pull()
+
+samples_n50 %>% 
+  summarize(sd(fy_prop)) %>% 
+  pull()
+
+samples_n100 %>% 
+  summarize(sd(fy_prop)) %>% 
+  pull()
+```
+
+We observe standard deviation decreasing as we increase the sample size.
+
+```{r}
+samples_n100 <- class_years %>% 
+  rep_slice_sample(n = 100, reps = 1000) %>% 
+  group_by(replicate) %>% 
+  summarize(fy_prop = mean(year == "First-Year")) %>% 
+  summarize(mean(fy_prop)) %>% 
+  pull()
+
+```
+
